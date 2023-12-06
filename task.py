@@ -1,5 +1,6 @@
 import numpy as np
 from physics_sim import PhysicsSim
+import itertools
 
 class Task():
     """Task (environment) that defines the goal and provides feedback to the agent."""
@@ -18,32 +19,130 @@ class Task():
         self.sim = PhysicsSim(init_pose, init_velocities, init_angle_velocities, runtime) 
         self.action_repeat = 3
 
-        self.state_size = self.action_repeat * 6
-        self.action_low = 0
+        self.state_size = self.action_repeat * 9
+        self.action_low = 10
         self.action_high = 900
         self.action_size = 4
+        self.action_split = 15 # 3 SPEED LEVELS 400,450,500
 
         # Goal
         self.target_pos = target_pos if target_pos is not None else np.array([0., 0., 10.]) 
+        
+        self.max_height_reward = 5       #5 is max reward after takeoff upon reaching max desired height
+        self.max_height = 20
+        self.max_height_acheived = False
+        self.max_height_target = np.array([0., 0., 30.])
+        self.target_velocity = 0.0 #  np.array([0., 0., 0.])
+        self.Has_landed = False
+        
+        #a = np.arange(self.action_split)
+        #self.dict_index_to_levels = {index:val for index, val in enumerate(itertools.product(a, repeat=4))}
+        #self.dict_levels_to_index = {val:index for index,val in self.dict_index_to_levels.items()}
+        
+        self.rotor_speed_levels =  np.round(np.linspace(self.action_low,self.action_high,self.action_split),0)
 
-    def get_reward(self):
+    def get_reward(self,done):
         """Uses current pose of sim to return reward."""
-        reward = 1.-.3*(abs(self.sim.pose[:3] - self.target_pos)).sum()
+#         reward = 1.-.3*(abs(self.sim.pose[:3] - self.target_pos)).sum()
+        if done:
+            if self.sim.time < 10.:
+                reward = -100
+            else:
+                reward = 0
+        else:
+            reward = self.calculate_reward(self.sim.pose)
+        
         return reward
 
     def step(self, rotor_speeds):
         """Uses action to obtain next state, reward, done."""
         reward = 0
         pose_all = []
+        
+        rotor_speeds = self.eval_rotor_speed(rotor_speeds)
+        
         for _ in range(self.action_repeat):
             done = self.sim.next_timestep(rotor_speeds) # update the sim pose and velocities
-            reward += self.get_reward() 
-            pose_all.append(self.sim.pose)
-        next_state = np.concatenate(pose_all)
+            reward += self.get_reward(done) 
+            pose_all.append(np.concatenate([self.sim.pose,self.sim.v,[self.max_height_acheived]]))
+            
+        if done or self.Has_landed:
+            next_state = self.reset()
+            done = True
+        else:
+            next_state = np.concatenate(pose_all)
+            
+        #print('next state',next_state,'reward',reward)
         return next_state, reward, done
+    
+    def eval_rotor_speed(self,rotor_speeds):
+
+        calc_rotor_speed = [self.rotor_speed_levels[idx] for idx in rotor_speeds]
+        return calc_rotor_speed
 
     def reset(self):
         """Reset the sim to start a new episode."""
         self.sim.reset()
-        state = np.concatenate([self.sim.pose] * self.action_repeat) 
+        state = np.concatenate([np.concatenate([self.sim.pose,self.sim.v,[self.max_height_acheived]])] * self.action_repeat)
+        self.max_height_acheived = False
+        self.Has_landed = False
         return state
+    
+    def calculate_reward(self, pose):
+
+        z = pose[2]
+
+        if z <= self.max_height and not self.max_height_acheived:
+            
+            reward = 10./np.exp(abs(self.sim.pose[2] - self.max_height)) 
+        else:
+            
+            diff = 0.1 *(abs(self.sim.pose[:3] - self.target_pos).sum())
+            
+            reward = 100./np.exp(diff)
+            
+            if self.sim.pose[2] <= 19:
+                reward = reward + 100/np.exp(0.01*abs(self.sim.v[2] - self.target_velocity))
+            
+            self.max_height_acheived = True
+        
+            if (np.round(np.array(self.sim.pose),0)==np.array(self.target_pos)):
+                reward = reward+ 1000
+                self.Has_landed = True
+                print('Egle Has landed...')
+
+    
+        return reward
+    
+    
+  
+    
+ #         rotor_speeds = np.exp(np.linspace(0,np.log(900),20)) #rotor speed broken down into 20 levels changing exponentialy...
+    
+#     def calculate_reward(self, pose):
+
+#         z = pose[2]
+# #         factor = np.pi/max_height
+# #         res = z*factor
+
+#         if z <= max_height and not max_height_acheived:
+# #             reward = max_height_reward*round(np.sin(res/2.0),4)
+#             reward = 1.-.5*(abs(self.sim.pose[:3] - self.max_height_target)).sum()    
+#             print(reward)         
+#         else:
+#             max_height_acheived = True
+# #             reward = max_height_reward*round(np.cos(res/2.0),4)
+#             reward = 1.-.5*(abs(self.sim.pose[:3] - self.target_pos)).sum()
+    
+#             reward = reward + (1.-.5*(abs(self.sim.v - self.target_velocity)).sum())
+        
+#             if np.sum(self.sim.pose) == 0 and np.sum(self.sim.v) == 0:
+#                 reward = reward + 100
+#                 self.Has_landed = True
+    
+# #             if z < 5 and np.sum(self.sim.v) > 10: #penalize the action if at lower height velocities are high.
+# #                 reward = reward - 10
+                
+#             print(reward)
+            
+#         return reward
