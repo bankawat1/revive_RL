@@ -5,7 +5,7 @@ class QNetwork:
                  action_size=4, action_split = 3, hidden_size=10, 
                  name='QNetwork'):
         # state inputs to the Q-network
-        with tf.compat.v1.variable_scope(name):
+        with tf.variable_scope(name):
             self.inputs_ = tf.placeholder(tf.float32, [None, state_size*action_repeat], name='inputs')
             
             # One hot encode the actions to later choose the Q-value for the action

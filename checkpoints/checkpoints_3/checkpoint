@@ -1,0 +1,3 @@
+model_checkpoint_path: "Quadcopter.ckpt"
+all_model_checkpoint_paths: "../checkpoints_1/Quadcopter.ckpt"
+all_model_checkpoint_paths: "Quadcopter.ckpt"

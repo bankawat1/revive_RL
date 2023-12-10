@@ -1,0 +1,6 @@
+model_checkpoint_path: "Quadcopter.ckpt"
+all_model_checkpoint_paths: "../checkpoints_25/Quadcopter.ckpt"
+all_model_checkpoint_paths: "../checkpoints_1402/Quadcopter.ckpt"
+all_model_checkpoint_paths: "../checkpoints_1702/Quadcopter.ckpt"
+all_model_checkpoint_paths: "../checkpoints_1705/Quadcopter.ckpt"
+all_model_checkpoint_paths: "Quadcopter.ckpt"

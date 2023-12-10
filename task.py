@@ -35,10 +35,6 @@ class Task():
         self.target_velocity = 0.0 #  np.array([0., 0., 0.])
         self.Has_landed = False
         
-        #a = np.arange(self.action_split)
-        #self.dict_index_to_levels = {index:val for index, val in enumerate(itertools.product(a, repeat=4))}
-        #self.dict_levels_to_index = {val:index for index,val in self.dict_index_to_levels.items()}
-        
         self.rotor_speed_levels =  np.round(np.linspace(self.action_low,self.action_high,self.action_split),0)
 
     def get_reward(self,done):
@@ -95,6 +91,7 @@ class Task():
         if z <= self.max_height and not self.max_height_acheived:
             
             reward = 10./np.exp(abs(self.sim.pose[2] - self.max_height)) 
+            
         else:
             
             diff = 0.1 *(abs(self.sim.pose[:3] - self.target_pos).sum())
@@ -111,38 +108,7 @@ class Task():
                 self.Has_landed = True
                 print('Egle Has landed...')
 
-    
+            
         return reward
     
     
-  
-    
- #         rotor_speeds = np.exp(np.linspace(0,np.log(900),20)) #rotor speed broken down into 20 levels changing exponentialy...
-    
-#     def calculate_reward(self, pose):
-
-#         z = pose[2]
-# #         factor = np.pi/max_height
-# #         res = z*factor
-
-#         if z <= max_height and not max_height_acheived:
-# #             reward = max_height_reward*round(np.sin(res/2.0),4)
-#             reward = 1.-.5*(abs(self.sim.pose[:3] - self.max_height_target)).sum()    
-#             print(reward)         
-#         else:
-#             max_height_acheived = True
-# #             reward = max_height_reward*round(np.cos(res/2.0),4)
-#             reward = 1.-.5*(abs(self.sim.pose[:3] - self.target_pos)).sum()
-    
-#             reward = reward + (1.-.5*(abs(self.sim.v - self.target_velocity)).sum())
-        
-#             if np.sum(self.sim.pose) == 0 and np.sum(self.sim.v) == 0:
-#                 reward = reward + 100
-#                 self.Has_landed = True
-    
-# #             if z < 5 and np.sum(self.sim.v) > 10: #penalize the action if at lower height velocities are high.
-# #                 reward = reward - 10
-                
-#             print(reward)
-            
-#         return reward
