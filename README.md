@@ -2,9 +2,9 @@
 
 *Teach a Quadcopter How to Fly!*
 
-In this project, I designed an agent to fly a quadcopter, and then trained it using Deep-Q learning reinforcement algorithm.
+In this project, I designed an agent to fly a quadcopter and then trained it using the Deep-Q learning reinforcement algorithm.
 
-Primary objectives in this project was to:
+The primary objectives of this project were to:
 
 1. Design and build a task.
 2. Build a Deep Q-Network.
@@ -12,7 +12,9 @@ Primary objectives in this project was to:
 
 Other files are supporting files.
    
-Test run output is stored in Testrun.txt file.
+Test run output is stored in the Testrun.txt file.
+
+Worth noting that this project was part of Udacity coursework, so you may find some of the boilerplate code too.
 
 
 
